@@ -1,25 +1,61 @@
-node {
-    def server = Artifactory.server 'Artifactory'
-    def rtNpm = Artifactory.newNpmBuild()
-    def buildInfo
+pipeline {
+    agent any
 
-    stage ('Clone') {
-        git url: 'https://github.com/shilpakallaganad19/npm-pipeline.git'
+    stages {
+        stage ('Clone') {
+            steps {
+                git branch: 'master', url: "https://github.com/shilpakallaganad19/npm-pipeline.git"
+            }
+        }
+
+        stage ('Artifactory configuration') {
+            steps {
+                rtServer (
+                    id: "ARTIFACTORY_SERVER",
+                    url: "https://vigneshs.jfrog.io/vignesh",
+                    credentialsId: "Artifactory_admin"
+                )
+
+                rtNpmResolver (
+                    id: "NPM_RESOLVER",
+                    serverId: "ARTIFACTORY_SERVER",
+                    repo: "npm-remote"
+                )
+
+                rtNpmDeployer (
+                    id: "NPM_DEPLOYER",
+                    serverId: "ARTIFACTORY_SERVER",
+                    repo: "npm-local"
+                )
+            }
+        }
+
+        stage ('Exec npm install') {
+            steps {
+                rtNpmInstall (
+                    tool: "Nodejs-1", // Tool name from Jenkins configuration
+                    path: "npm-example",
+                    resolverId: "NPM_RESOLVER"
+                )
+            }
+        }
+
+        stage ('Exec npm publish') {
+            steps {
+                rtNpmPublish (
+                    tool: "Nodejs-1", // Tool name from Jenkins configuration
+                    path: "npm-example",
+                    deployerId: "NPM_DEPLOYER"
+                )
+            }
+        }
+
+        stage ('Publish build info') {
+            steps {
+                rtPublishBuildInfo (
+                    serverId: "ARTIFACTORY_SERVER"
+                )
+            }
+        }
     }
-
-    stage ('Artifactory configuration') {
-        rtNpm.deployer repo: 'npm-local', server: server
-        rtNpm.resolver repo: 'npm-remote', server: server
-        rtNpm.tool = 'Nodejs-1' // Tool name from Jenkins configuration
-        buildInfo = Artifactory.newBuildInfo()
-    }
-
-    stage ('Install npm') {
-        rtNpm.install buildInfo: buildInfo, path: '.', args: '--silent'
-    }
-
-    stage ('Publish npm') {
-        rtNpm.publish buildInfo: buildInfo, path: '.'
-    }
-
 }
