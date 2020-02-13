@@ -15,14 +15,11 @@ node {
     }
 
     stage ('Install npm') {
-        rtNpm.install buildInfo: buildInfo, path: 'helloworld.js'
+        rtNpm.install buildInfo: buildInfo, path: '.'
     }
 
     stage ('Publish npm') {
-        rtNpm.publish buildInfo: buildInfo, path: 'helloworld.js'
+        rtNpm.publish buildInfo: buildInfo, path: '.'
     }
 
-    stage ('Publish build info') {
-        server.publishBuildInfo buildInfo
-    }
 }
