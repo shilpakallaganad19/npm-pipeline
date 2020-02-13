@@ -13,7 +13,7 @@ pipeline {
                 rtServer (
                     id: "ARTIFACTORY_SERVER",
                     url: "https://vigneshs.jfrog.io/vignesh",
-                    credentialsId: "$Shilpa_Artifactory_Cred"
+                    credentialsId: "Artifactory_admin"
                 )
 
                 rtNpmResolver (
