@@ -15,7 +15,7 @@ node {
     }
 
     stage ('Install npm') {
-        rtNpm.install buildInfo: buildInfo, path: '.', args: --silent
+        rtNpm.install buildInfo: buildInfo, path: '.', args: '--silent'
     }
 
     stage ('Publish npm') {
