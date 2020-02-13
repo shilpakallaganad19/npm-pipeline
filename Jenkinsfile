@@ -10,7 +10,7 @@ node {
     stage ('Artifactory configuration') {
         rtNpm.deployer repo: 'npm-local', server: server
         rtNpm.resolver repo: 'npm-remote', server: server
-        rtNpm.tool = Nodejs-1 // Tool name from Jenkins configuration
+        rtNpm.tool = 'Nodejs-1' // Tool name from Jenkins configuration
         buildInfo = Artifactory.newBuildInfo()
     }
 
