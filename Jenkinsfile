@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-node('Nodejs-1') {
+node(Nodejs-1) {
 
 
     currentBuild.result = "SUCCESS"
