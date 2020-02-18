@@ -1,61 +1,53 @@
-pipeline {
-    agent any
+#!groovy
 
-    stages {
-        stage ('Clone') {
-            steps {
-                git branch: 'master', url: "https://github.com/shilpakallaganad19/npm-pipeline.git"
-            }
-        }
+/*
+The MIT License
+Copyright (c) 2015-, CloudBees, Inc., and a number of other of contributors
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
 
-        stage ('Artifactory configuration') {
-            steps {
-                rtServer (
-                    id: "ARTIFACTORY_SERVER",
-                    url: "https://vigneshs.jfrog.io/vignesh",
-                    credentialsId: "Artifactory_admin"
-                )
+node('Nodejs-1') {
 
-                rtNpmResolver (
-                    id: "NPM_RESOLVER",
-                    serverId: "ARTIFACTORY_SERVER",
-                    repo: "npm-remote"
-                )
 
-                rtNpmDeployer (
-                    id: "NPM_DEPLOYER",
-                    serverId: "ARTIFACTORY_SERVER",
-                    repo: "npm-local"
-                )
-            }
-        }
+    currentBuild.result = "SUCCESS"
 
-        stage ('Exec npm install') {
-            steps {
-                rtNpmInstall (
-                    tool: "Nodejs-1", // Tool name from Jenkins configuration
-                    path: ".",
-                    resolverId: "NPM_RESOLVER"
-                )
-            }
-        }
+    try {
 
-        stage ('Exec npm publish') {
-            steps {
-                rtNpmPublish (
-                    tool: "Nodejs-1", // Tool name from Jenkins configuration
-                    path: ".",
-                    deployerId: "NPM_DEPLOYER"
-                )
-            }
-        }
+       stage('Checkout'){
 
-        stage ('Publish build info') {
-            steps {
-                rtPublishBuildInfo (
-                    serverId: "ARTIFACTORY_SERVER"
-                )
-            }
-        }
-    }
+          checkout scm
+       }
+
+       stage('Test'){
+
+         env.NODE_ENV = "test"
+
+         print "Environment will be : ${env.NODE_ENV}"
+
+         sh 'node -v'
+         sh 'npm prune'
+         sh 'npm install'
+         sh 'npm test'
+
+       }
+       stage('Cleanup'){
+
+         echo 'prune and cleanup'
+         sh 'npm prune'
+         sh 'rm node_modules -rf'
+       }
 }
